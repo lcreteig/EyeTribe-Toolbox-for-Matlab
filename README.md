@@ -1,7 +1,12 @@
 EyeTribe Toolbox for Matlab
 ===========================
 
-This is a fork of the [EyeTribe Toolbox for Matlab](https://github.com/esdalmaijer/EyeTribe-Toolbox-for-Matlab), version 0.0.3 (03-Jun-2015)
+This is a fork of the [EyeTribe Toolbox for Matlab](https://github.com/esdalmaijer/EyeTribe-Toolbox-for-Matlab).
+
+Changes compared to original version 0.0.3 (03-Jun-2015):
+
+* Added parameter to change color of calibration stimulus
+* Added output of calibration errors to PTB window, command window, and EyeTribe log file.
 
 
 ABOUT
