@@ -1,4 +1,4 @@
-function [success] = eyetribe_calibrate(connection, window)
+function [success] = eyetribe_calibrate(connection, window, fgc)
 %CALIBRATE calibrates the EyeTribe tracker
 %   Sends a command to the EyeTribe sub-Server, which will in turn use this
 %   command to talk to the actual EyeTribe Server to initialize a
@@ -12,15 +12,20 @@ function [success] = eyetribe_calibrate(connection, window)
 %   connection -    tcpip object; the tcpip object created by init_eyetribe
 %   window     -    windowPtr; reference to an open PsychToolbox window,
 %                   resulting from a call to Screen('OpenWindow')
+%   fgc        -    color of calibration dot
 %
 %   Returns
 %   succes         -    Boolean; 1 on success, 0 on failure
+%
+%   Modified by Leon Reteig, 21-04-2018
 
 % success starting value
 success = 0;
 
 % get screen colours
-fgc = BlackIndex(0);
+if ~exist('fgc','var') || isempty(fgc)
+    fgc = BlackIndex(0); % default value in original
+end
 
 % get screen dimensions
 [w, h] = Screen('WindowSize', window);
