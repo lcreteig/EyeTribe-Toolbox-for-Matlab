@@ -1,4 +1,4 @@
-function [success] = eyetribe_calibrate(connection, window, fgc)
+function [success] = eyetribe_calibrate(connection, window, fgc, pix2deg)
 %CALIBRATE calibrates the EyeTribe tracker
 %   Sends a command to the EyeTribe sub-Server, which will in turn use this
 %   command to talk to the actual EyeTribe Server to initialize a
@@ -13,6 +13,8 @@ function [success] = eyetribe_calibrate(connection, window, fgc)
 %   window     -    windowPtr; reference to an open PsychToolbox window,
 %                   resulting from a call to Screen('OpenWindow')
 %   fgc        -    color of calibration dot
+%   pix2deg    -    scaling factor to convert pixels to degrees of visual
+%                   angle (for calibration result output)
 %
 %   Returns
 %   succes         -    Boolean; 1 on success, 0 on failure
@@ -25,6 +27,10 @@ success = 0;
 % get screen colours
 if ~exist('fgc','var') || isempty(fgc)
     fgc = BlackIndex(0); % default value in original
+end
+
+if ~exist('pix2deg','var') || isempty(pix2deg)
+    pix2deg = 0;
 end
 
 % get screen dimensions
@@ -131,7 +137,7 @@ if strcmp(message, 'success')
             result = zeros(4,9);
         else
             % calibration finished
-            resulttext = 'Calibration was succesful. (a = accept; r = retry)';
+            resulttext = 'Calibration complete. (a = accept; r = retry)';
             % get result message
             message = eyetribe_send_command(connection, 'Calibration result');
             if strcmp(message(1:7), 'success') == 0
@@ -164,8 +170,22 @@ if strcmp(message, 'success')
                     Screen('FillOval', window, [115 210 22], [round(actx-5) round(acty-5) round(actx+5) round(acty+5)]);
                     % draw estimated point on Screen
                     Screen('FillOval', window, [32 74 135], [round(estx-5) round(esty-5) round(estx+5) round(esty+5)]);
+                    if pix2deg > 0  % print error in degrees below each point
+                        Screen('DrawText', window, sprintf('%.2f', sqrt((actx - estx)^2 + (acty - esty)^2)*pix2deg), actx, acty+10, fgc);
+                    else % print values in pixels
+                        Screen('DrawText', window, sprintf('%.0f', sqrt((actx - estx)^2 + (acty - esty)^2)), actx, acty+10, fgc);
+                    end
                 end
             end
+            % Display calibration result in command window
+            calibErrors = sqrt((result(3,:) - result(5,:)).^2 + (result(4,:) - result(6,:)).^2);
+            calibState = sprintf('Succesfully calibrated points %s', sprintf('%i ', find(result(1,:) > 0)));
+            calibXCoords = sprintf('X-coordinates of displayed calibration points: %s', sprintf('%i ', result(3,:)));
+            calibYCoords = sprintf('Y-coordinates of displayed calibration points: %s', sprintf('%i ', result(4,:)));
+            cErrPix = sprintf('Calibration errors in pixels: %s', sprintf('%.0f ', calibErrors));
+            cErrDeg = sprintf('Calibration errors in degrees: %s', sprintf('%.2f ', calibErrors*pix2deg));
+            cErrAvg = sprintf('Average error: %.0f pixels, %.2f degrees', mean(calibErrors), mean(calibErrors)*pix2deg);
+            disp(calibState); disp(calibXCoords); disp(calibYCoords); disp(cErrPix); disp(cErrDeg); disp(cErrAvg);
         end
         % draw text on Screen
         Screen('DrawText', window, resulttext, round(w/2), round(h/4), fgc);
@@ -214,5 +234,12 @@ else
     disp('Failed to enter calibration mode.')
 end
 
+% Log calibration result
+eyetribe_log(connection, 'start calibration report');
+if ~isempty(result) && any(result(1,:) > 0)
+    eyetribe_log(connection, calibState); eyetribe_log(connection, calibXCoords); eyetribe_log(connection, calibYCoords); 
+    eyetribe_log(connection, cErrPix); eyetribe_log(connection, cErrDeg); eyetribe_log(connection, cErrAvg);
+end
+eyetribe_log(connection, 'end calibration report');
 end
 
