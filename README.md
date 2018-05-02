@@ -1,7 +1,7 @@
 EyeTribe Toolbox for Matlab
 ===========================
 
-version 0.0.3 (03-Jun-2015)
+This is a fork of the [EyeTribe Toolbox for Matlab](https://github.com/esdalmaijer/EyeTribe-Toolbox-for-Matlab), version 0.0.3 (03-Jun-2015)
 
 
 ABOUT
@@ -165,4 +165,3 @@ success = eyetribe_close(connection);
 % close window
 Screen('Close', window);
 ~~~
-
